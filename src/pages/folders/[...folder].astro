@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import NoteList from '../../components/NoteList.astro';
+import { folderOf, groupByFolder } from '../../lib/notes.mjs';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes', ({ data }) => !data.draft);
+  return groupByFolder(notes).map(([folder]) => ({ params: { folder }, props: { folder } }));
+}
+
+const { folder } = Astro.props;
+const notes = await getCollection('notes', ({ data }) => !data.draft);
+const entries = notes.filter((note) => folderOf(note) === folder);
+const root = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<BaseLayout title={folder} description={`${folder}目录下的笔记。`}>
+  <div class="content-grid">
+    <Sidebar notes={notes} activeFolder={folder} />
+    <main class="main-content">
+      <div class="page-intro compact">
+        <a class="breadcrumb" href={root}>← 全部笔记</a>
+        <div class="eyebrow"><span class="eyebrow-line"></span> 目录 / FOLDER</div>
+        <h1>{folder}</h1>
+        <p>共 {entries.length} 篇笔记</p>
+      </div>
+      <div class="single-list"><NoteList notes={entries} /></div>
+    </main>
+  </div>
+</BaseLayout>
