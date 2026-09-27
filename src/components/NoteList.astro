@@ -14,10 +14,12 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat('zh-CN', {
 <ul class="post-list">
   {notes.map((note) => (
     <li class="post-entry" data-note-row={searchable ? true : undefined} data-search={searchable ? `${note.data.title} ${note.data.description ?? ''} ${(note.data.tags ?? []).join(' ')} ${note.id}`.toLocaleLowerCase('zh-CN') : undefined}>
-      <time class="post-date" datetime={new Date(note.data.date).toISOString().slice(0, 10)}>{formatDate(note.data.date)}</time>
       <div class="post-body">
         <h2 class="post-title"><a href={noteHref(base, note.id)}>{note.data.title}</a></h2>
         {note.data.description && <p class="post-description">{note.data.description}</p>}
+      </div>
+      <div class="post-side">
+        <time class="post-date" datetime={new Date(note.data.date).toISOString().slice(0, 10)}>{formatDate(note.data.date)}</time>
         <div class="post-meta">
           <a href={folderHref(base, folderOf(note))}>{folderOf(note)}</a>
           {(note.data.tags ?? []).map((tag: string) => <a href={tagHref(base, tag)}>#{tag}</a>)}

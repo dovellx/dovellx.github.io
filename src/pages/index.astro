@@ -2,21 +2,66 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import NoteList from '../components/NoteList.astro';
-import { sortNotes } from '../lib/notes.mjs';
+import { collectTags, folderHref, groupByFolder, sortNotes, tagHref } from '../lib/notes.mjs';
 
 const notes = sortNotes(await getCollection('notes', ({ data }) => !data.draft));
+const folders = groupByFolder(notes);
+const tags = collectTags(notes);
+const base = import.meta.env.BASE_URL;
+const count = (value: number) => String(value).padStart(2, '0');
 ---
 
 <BaseLayout>
-  <main class="site-main" id="main">
-    <div class="page-intro home-intro">
-      <h1>笔记</h1>
-      <p>个人笔记，按文件夹和标签整理。</p>
-    </div>
-    {notes.length > 0 ? (
-      <NoteList notes={notes} />
-    ) : (
-      <p class="empty-state">还没有公开的笔记。</p>
-    )}
+  <main class="site-main home-main" id="main">
+    <header class="home-intro">
+      <div class="home-title">
+        <span class="home-kicker">dovellx / notes</span>
+        <h1>笔记</h1>
+      </div>
+      <div class="home-summary">
+        <p>个人笔记，按文件夹和标签整理。</p>
+        <dl class="home-stats">
+          <div><dt>笔记</dt><dd>{count(notes.length)}</dd></div>
+          <div><dt>文件夹</dt><dd>{count(folders.length)}</dd></div>
+          <div><dt>标签</dt><dd>{count(tags.length)}</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <section class="home-section" aria-labelledby="recent-notes">
+      <div class="section-heading">
+        <h2 id="recent-notes">最近更新</h2>
+        <a href={base + 'search/'}>搜索全部</a>
+      </div>
+      {notes.length > 0 ? (
+        <NoteList notes={notes} />
+      ) : (
+        <p class="empty-state">还没有公开的笔记。</p>
+      )}
+    </section>
+
+    <section class="home-section home-index" aria-labelledby="note-index">
+      <div class="section-heading">
+        <h2 id="note-index">索引</h2>
+      </div>
+      <div class="index-columns">
+        <section>
+          <div class="index-heading"><h3>文件夹</h3><a href={base + 'folders/'}>全部</a></div>
+          <ul>
+            {folders.slice(0, 6).map(([folder, entries]) => (
+              <li><a href={folderHref(base, folder)}>{folder}</a><span>{count(entries.length)}</span></li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <div class="index-heading"><h3>标签</h3><a href={base + 'tags/'}>全部</a></div>
+          <ul>
+            {tags.slice(0, 6).map(([tag, tagCount]) => (
+              <li><a href={tagHref(base, tag)}>#{tag}</a><span>{count(tagCount)}</span></li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </section>
   </main>
 </BaseLayout>

@@ -30,7 +30,10 @@ const isNotesPage = Astro.url.pathname === root || Astro.url.pathname.startsWith
     <div class="site-shell">
       <a class="skip-link" href="#main">跳到正文</a>
       <header class="site-header">
-        <a class="brand" href={root} aria-label="dovellx 首页">dovellx</a>
+        <div class="brand-group">
+          <a class="brand" href={root} aria-label="dovellx 首页">dovellx</a>
+          <span class="site-edition">notes / {new Date().getFullYear()}</span>
+        </div>
         <nav class="top-nav" aria-label="主导航">
           <a href={root} aria-current={isNotesPage ? 'page' : undefined}>笔记</a>
           <a href={`${root}folders/`} aria-current={Astro.url.pathname.startsWith(`${root}folders/`) ? 'page' : undefined}>文件夹</a>
@@ -43,6 +46,7 @@ const isNotesPage = Astro.url.pathname === root || Astro.url.pathname.startsWith
 
       <footer class="site-footer">
         <span>© {new Date().getFullYear()} dovellx</span>
+        <a href="https://github.com/dovellx" rel="me">GitHub ↗</a>
       </footer>
     </div>
   </body>
