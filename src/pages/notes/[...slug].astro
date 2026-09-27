@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Sidebar from '../../components/Sidebar.astro';
 import { folderHref, folderOf, tagHref } from '../../lib/notes.mjs';
 
 export async function getStaticPaths() {
@@ -10,7 +9,6 @@ export async function getStaticPaths() {
 }
 
 const { note } = Astro.props;
-const notes = await getCollection('notes', ({ data }) => !data.draft);
 const { Content, headings } = await render(note);
 const folder = folderOf(note);
 const base = import.meta.env.BASE_URL;
@@ -20,31 +18,27 @@ const formattedDate = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month:
 const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 ---
 
-<BaseLayout title={note.data.title} description={note.data.description ?? `${note.data.title} — dovellx 的笔记。`}>
-  <div class="content-grid article-grid">
-    <Sidebar notes={notes} activeFolder={folder} />
-    <main class="main-content article-main">
-      <a class="breadcrumb" href={root}>← 全部笔记</a>
-      <article>
-        <header class="article-header">
-          <div class="eyebrow"><span class="eyebrow-line"></span> <a href={folderHref(base, folder)}>{folder}</a> / NOTE</div>
-          <h1>{note.data.title}</h1>
-          {note.data.description && <p class="article-summary">{note.data.description}</p>}
-          <div class="article-meta">
-            <time datetime={date.toISOString().slice(0, 10)}>{formattedDate}</time>
-            {(note.data.tags ?? []).map((tag: string) => <a href={tagHref(base, tag)}>#{tag}</a>)}
-          </div>
-        </header>
+<BaseLayout title={note.data.title} description={note.data.description ?? `${note.data.title} · dovellx 的笔记。`}>
+  <main class="site-main article-main" id="main">
+    <a class="back-link" href={root}>← 笔记</a>
+    <article>
+      <header class="article-header">
+        <h1>{note.data.title}</h1>
+        <div class="article-meta">
+          <time datetime={date.toISOString().slice(0, 10)}>{formattedDate}</time>
+          <a href={folderHref(base, folder)}>{folder}</a>
+          {(note.data.tags ?? []).map((tag: string) => <a href={tagHref(base, tag)}>#{tag}</a>)}
+        </div>
+      </header>
 
-        {toc.length > 2 && (
-          <nav class="article-toc" aria-label="本文目录">
-            <p>本文目录</p>
-            <ol>{toc.map((heading) => <li class:list={{ 'toc-sub': heading.depth === 3 }}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol>
-          </nav>
-        )}
-        <div class="prose"><Content /></div>
-      </article>
-      <div class="article-end"><a href={folderHref(base, folder)}>查看「{folder}」中的其他笔记 →</a></div>
-    </main>
-  </div>
+      {toc.length > 2 && (
+        <nav class="article-toc" aria-label="本文目录">
+          <p>目录</p>
+          <ol>{toc.map((heading) => <li class:list={{ 'toc-sub': heading.depth === 3 }}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol>
+        </nav>
+      )}
+      <div class="prose"><Content /></div>
+    </article>
+    <div class="article-end"><a href={root}>← 返回笔记</a></div>
+  </main>
 </BaseLayout>

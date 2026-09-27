@@ -4,11 +4,14 @@ import '../styles/site.css';
 interface Props {
   title?: string;
   description?: string;
+  robots?: string;
 }
 
-const { title, description = 'dovellx 的个人笔记与文章。' } = Astro.props;
+const { title, description = 'dovellx 的个人笔记与文章。', robots } = Astro.props;
 const root = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const pageTitle = title ? `${title} · dovellx` : 'dovellx · 笔记';
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const isNotesPage = Astro.url.pathname === root || Astro.url.pathname.startsWith(`${root}notes/`);
 ---
 
 <!doctype html>
@@ -17,21 +20,22 @@ const pageTitle = title ? `${title} · dovellx` : 'dovellx · 笔记';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <meta name="color-scheme" content="light" />
+    <link rel="canonical" href={canonicalURL} />
     <link rel="icon" type="image/svg+xml" href={`${root}favicon.svg`} />
     <title>{pageTitle}</title>
   </head>
   <body>
     <div class="site-shell">
+      <a class="skip-link" href="#main">跳到正文</a>
       <header class="site-header">
-        <a class="brand" href={root} aria-label="dovellx 首页">
-          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-          <span>dovellx</span>
-        </a>
+        <a class="brand" href={root} aria-label="dovellx 首页">dovellx</a>
         <nav class="top-nav" aria-label="主导航">
-          <a href={root}>笔记</a>
-          <a href={`${root}#folders`}>目录</a>
-          <a href={`${root}#tags`}>标签</a>
+          <a href={root} aria-current={isNotesPage ? 'page' : undefined}>笔记</a>
+          <a href={`${root}folders/`} aria-current={Astro.url.pathname.startsWith(`${root}folders/`) ? 'page' : undefined}>文件夹</a>
+          <a href={`${root}tags/`} aria-current={Astro.url.pathname.startsWith(`${root}tags/`) ? 'page' : undefined}>标签</a>
+          <a href={`${root}search/`} aria-current={Astro.url.pathname.startsWith(`${root}search/`) ? 'page' : undefined}>搜索</a>
         </nav>
       </header>
 
@@ -39,7 +43,6 @@ const pageTitle = title ? `${title} · dovellx` : 'dovellx · 笔记';
 
       <footer class="site-footer">
         <span>© {new Date().getFullYear()} dovellx</span>
-        <span>写下来，留待重读。</span>
       </footer>
     </div>
   </body>

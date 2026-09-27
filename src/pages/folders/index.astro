@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { folderHref, groupByFolder } from '../../lib/notes.mjs';
+
+const notes = await getCollection('notes', ({ data }) => !data.draft);
+const folders = groupByFolder(notes);
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title="文件夹" description="按文件夹浏览 dovellx 的笔记。">
+  <main class="site-main" id="main">
+    <div class="page-intro">
+      <h1>文件夹</h1>
+      <p>{folders.length} 个文件夹</p>
+    </div>
+
+    {folders.length > 0 ? (
+      <ul class="taxonomy-list">
+        {folders.map(([folder, entries]) => (
+          <li>
+            <a href={folderHref(base, folder)}>{folder}</a>
+            <span>{entries.length} 篇</span>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty-state">暂无公开笔记。</p>
+    )}
+  </main>
+</BaseLayout>

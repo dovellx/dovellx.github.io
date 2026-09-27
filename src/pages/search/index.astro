@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NoteList from '../../components/NoteList.astro';
+import { sortNotes } from '../../lib/notes.mjs';
+
+const notes = sortNotes(await getCollection('notes', ({ data }) => !data.draft));
+---
+
+<BaseLayout title="搜索" description="搜索 dovellx 的笔记。" robots="noindex, follow">
+  <main class="site-main" id="main">
+    <div class="page-intro">
+      <h1>搜索</h1>
+    </div>
+
+    <label class="search-field" for="note-search">
+      <span>搜索笔记</span>
+      <input id="note-search" type="search" placeholder="标题、摘要、标签或文件夹" autocomplete="off" data-note-search />
+    </label>
+
+    {notes.length > 0 ? (
+      <div class="search-results">
+        <NoteList notes={notes} searchable />
+        <p class="empty-state" data-search-empty hidden>没有找到匹配的笔记。</p>
+      </div>
+    ) : (
+      <p class="empty-state">暂无公开笔记。</p>
+    )}
+  </main>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>('[data-note-search]');
+    const rows = [...document.querySelectorAll<HTMLElement>('[data-note-row]')];
+    const empty = document.querySelector<HTMLElement>('[data-search-empty]');
+
+    input?.addEventListener('input', () => {
+      const query = input.value.trim().toLocaleLowerCase('zh-CN');
+      let matches = 0;
+
+      for (const row of rows) {
+        row.hidden = !!query && !(row.dataset.search ?? '').includes(query);
+        if (!row.hidden) matches++;
+      }
+
+      if (empty) empty.hidden = !query || matches > 0;
+    });
+  </script>
+</BaseLayout>

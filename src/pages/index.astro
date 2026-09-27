@@ -1,77 +1,22 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Sidebar from '../components/Sidebar.astro';
 import NoteList from '../components/NoteList.astro';
-import { folderHref, groupByFolder } from '../lib/notes.mjs';
+import { sortNotes } from '../lib/notes.mjs';
 
-const notes = await getCollection('notes', ({ data }) => !data.draft);
-const groups = groupByFolder(notes);
-const base = import.meta.env.BASE_URL;
+const notes = sortNotes(await getCollection('notes', ({ data }) => !data.draft));
 ---
 
 <BaseLayout>
-  <div class="content-grid">
-    <Sidebar notes={notes} />
-    <main class="main-content" id="main">
-      <div class="page-intro">
-        <div class="eyebrow"><span class="eyebrow-line"></span> 个人笔记 / INDEX</div>
-        <h1>笔记</h1>
-        <p>在这里记录学习、阅读和偶然的想法。</p>
-      </div>
-
-      <div class="index-toolbar">
-        <label class="search-box" for="note-search">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          <input id="note-search" type="search" placeholder="搜索标题、标签或目录" autocomplete="off" data-note-search />
-          <span class="search-shortcut" aria-hidden="true">/</span>
-        </label>
-        <span class="index-count">共 {notes.length} 篇</span>
-      </div>
-
-      {groups.length > 0 ? (
-        <div class="folder-groups">
-          {groups.map(([folder, entries], index) => (
-            <section class="folder-group" data-note-group>
-              <div class="group-heading">
-                <span class="group-index">{String(index + 1).padStart(2, '0')}</span>
-                <h2><a href={folderHref(base, folder)}>{folder}</a></h2>
-                <span class="group-count">{entries.length} 篇</span>
-              </div>
-              <NoteList notes={entries} searchable />
-            </section>
-          ))}
-        </div>
-      ) : (
-        <div class="empty-state"><p>这里还没有公开的笔记。</p><p>在本地添加 Markdown 文件后，内容会出现在这里。</p></div>
-      )}
-      <p class="empty-state" data-search-empty hidden>没有找到匹配的笔记。</p>
-    </main>
-  </div>
-  <script>
-    const input = document.querySelector<HTMLInputElement>('[data-note-search]');
-    const rows = [...document.querySelectorAll<HTMLElement>('[data-note-row]')];
-    const groups = [...document.querySelectorAll<HTMLElement>('[data-note-group]')];
-    const empty = document.querySelector<HTMLElement>('[data-search-empty]');
-
-    function search() {
-      const query = input?.value.trim().toLocaleLowerCase('zh-CN') ?? '';
-      let count = 0;
-      for (const row of rows) {
-        const matches = !query || (row.dataset.search ?? '').includes(query);
-        row.hidden = !matches;
-        if (matches) count++;
-      }
-      for (const group of groups) group.hidden = !group.querySelector('[data-note-row]:not([hidden])');
-      if (empty) empty.hidden = !query || count > 0;
-    }
-
-    input?.addEventListener('input', search);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-        event.preventDefault();
-        input?.focus();
-      }
-    });
-  </script>
+  <main class="site-main" id="main">
+    <div class="page-intro home-intro">
+      <h1>笔记</h1>
+      <p>个人笔记，按文件夹和标签整理。</p>
+    </div>
+    {notes.length > 0 ? (
+      <NoteList notes={notes} />
+    ) : (
+      <p class="empty-state">还没有公开的笔记。</p>
+    )}
+  </main>
 </BaseLayout>
